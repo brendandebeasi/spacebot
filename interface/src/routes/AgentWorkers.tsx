@@ -661,9 +661,27 @@ function OpenCodeDirectLink({
 		return () => controller.abort();
 	}, [port, sessionId, initialDirectory]);
 
-	const href = directory
-		? `/api/opencode/${port}/${base64UrlEncode(directory)}/session/${sessionId}`
-		: `/api/opencode/${port}`;
+	// When spacebot is hosted at https://spacebot.<base>/, route the new-tab link
+	// through https://oc-<port>.<base>/ instead of /api/opencode/<port>/...
+	// The path-prefix proxy can't satisfy opencode's bare-root SPA assets
+	// (/assets/*, /favicon-*, /session/*) — those resolve against the proxy
+	// origin without the prefix and hit spacebot's own SPA shell, leaving the
+	// tab blank. The dedicated subdomain (Caddy site oc-{port}.<base> on the
+	// host VM) puts opencode on its own origin so bare-root paths work.
+	const subdomainHost =
+		typeof window !== "undefined" &&
+		window.location.protocol === "https:" &&
+		window.location.host.startsWith("spacebot.")
+			? window.location.host.replace(/^spacebot\./, `oc-${port}.`)
+			: null;
+
+	const href = subdomainHost
+		? directory
+			? `https://${subdomainHost}/${base64UrlEncode(directory)}/session/${sessionId}`
+			: `https://${subdomainHost}/`
+		: directory
+			? `/api/opencode/${port}/${base64UrlEncode(directory)}/session/${sessionId}`
+			: `/api/opencode/${port}`;
 
 	return (
 		<a
