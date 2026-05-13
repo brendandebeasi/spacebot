@@ -19,6 +19,7 @@ import {ModelSelect} from "@/components/ModelSelect";
 import {
 	InstanceSection,
 	AppearanceSection,
+	CompositionSection,
 	ChannelsSection,
 	SecretsSection,
 	ApiKeysSection,
@@ -592,6 +593,8 @@ export function Settings() {
 						/>
 					) : activeSection === "appearance" ? (
 						<AppearanceSection />
+					) : activeSection === "composition" ? (
+						<CompositionSection />
 					) : activeSection === "providers" ? (
 						<div className="mx-auto max-w-2xl px-6 py-6">
 							{/* Section header */}
