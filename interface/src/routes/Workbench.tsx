@@ -2,6 +2,9 @@ import {useMemo, useEffect, useRef} from "react";
 import {useQuery, useQueryClient, useQueries} from "@tanstack/react-query";
 import {api} from "@/api/client";
 import {useLiveContext} from "@/hooks/useLiveContext";
+import {useColumnWidths} from "@/components/workbench/useColumnWidths";
+import {ResizableColumn} from "@/components/workbench/ResizableColumn";
+import {ResizableSidebar} from "@/components/ResizableSidebar";
 import {
 	EmptyState,
 	WorkbenchSidebar,
@@ -13,9 +16,10 @@ import {
 	type OrchestrationWorker,
 } from "@/components/workbench";
 
-export function Workbench() {
+export function Workbench({filterThread}: {filterThread?: string} = {}) {
 	const queryClient = useQueryClient();
 	const {activeWorkers, workerEventVersion} = useLiveContext();
+	const {widths, setWidth} = useColumnWidths();
 
 	// -- Fetch all agents --
 	const {data: agentsData} = useQuery({
@@ -96,7 +100,12 @@ export function Workbench() {
 		return result;
 	}, [agents, workerQueries, activeWorkers]);
 
-	const filteredWorkers = allWorkers;
+	const filteredWorkers = filterThread
+		? allWorkers.filter(
+				(w) =>
+					w.opencode_session_id === filterThread || w.id === filterThread,
+			)
+		: allWorkers;
 	const isLoading = workerQueries.some((query) => query.isLoading);
 
 	// -- Fetch projects + worktrees to resolve worker.directory → project/worktree --
@@ -160,11 +169,17 @@ export function Workbench() {
 
 	return (
 		<div className="flex h-full gap-[10px] bg-sidebar pr-[10px] pb-[10px]">
-			<WorkbenchSidebar
-				tree={tree}
-				totalCount={filteredWorkers.length}
-				onSelectWorker={scrollToWorker}
-			/>
+			<ResizableSidebar
+				storageKey="spacebot-workbench-sidebar-width"
+				defaultWidth={270}
+				minWidth={220}
+			>
+				<WorkbenchSidebar
+					tree={tree}
+					totalCount={filteredWorkers.length}
+					onSelectWorker={scrollToWorker}
+				/>
+			</ResizableSidebar>
 			<div className="flex min-w-0 flex-1">
 				{isLoading && filteredWorkers.length === 0 ? (
 					<div className="flex h-full flex-1 items-center justify-center">
@@ -176,18 +191,24 @@ export function Workbench() {
 				) : filteredWorkers.length === 0 ? (
 					<EmptyState />
 				) : (
-					<div className="flex flex-1 gap-[10px] overflow-x-auto">
-						{filteredWorkers.map((worker) => (
-							<div
-								key={worker.id}
-								ref={(el) => {
-									columnRefs.current[worker.id] = el;
-								}}
-								className="flex h-full flex-shrink-0"
-							>
-								<WorkerColumn worker={worker} />
-							</div>
-						))}
+					<div className="flex flex-1 gap-[10px] overflow-x-auto min-w-0">
+						{filteredWorkers.map((worker, index) => {
+							const isLast = index === filteredWorkers.length - 1;
+							return (
+								<ResizableColumn
+									key={worker.id}
+									index={index}
+									isLast={isLast}
+									widths={widths}
+									setWidth={setWidth}
+									columnRef={(el) => {
+										columnRefs.current[worker.id] = el;
+									}}
+								>
+									<WorkerColumn worker={worker} />
+								</ResizableColumn>
+							);
+						})}
 					</div>
 				)}
 			</div>

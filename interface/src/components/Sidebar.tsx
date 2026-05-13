@@ -273,7 +273,7 @@ export function Sidebar({liveStates: _liveStates}: SidebarProps) {
 	};
 
 	return (
-		<aside className="flex w-[220px] shrink-0 flex-col bg-sidebar">
+		<aside className="flex h-full w-full flex-col bg-sidebar">
 			{/* Company switcher */}
 			<div className={`px-3 ${IS_DESKTOP && IS_MACOS ? "pt-[50px]" : "pt-3"}`}>
 				<Popover.Root open={switcherOpen} onOpenChange={setSwitcherOpen}>

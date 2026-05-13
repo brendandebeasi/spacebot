@@ -1,6 +1,6 @@
 import {useState, useMemo, useEffect, useCallback, useRef} from "react";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
-import {useNavigate, useSearch} from "@tanstack/react-router";
+import {Link, useNavigate, useSearch} from "@tanstack/react-router";
 import {motion} from "framer-motion";
 import {Markdown} from "@/components/Markdown";
 import {
@@ -466,8 +466,21 @@ export function WorkerDetail({
 					)}
 				</div>
 				<div className="flex items-center justify-between gap-3">
-					<div className="flex items-center gap-3 text-tiny text-ink-faint">
+					<div className="flex flex-wrap items-center gap-2 gap-y-1 text-tiny text-ink-faint min-w-0">
 						{detail.channel_name && <span>{detail.channel_name}</span>}
+						{hasOpenCodeEmbed && detail.opencode_session_id && (
+							<Link
+								to="/workbench/$thread"
+								params={{thread: detail.opencode_session_id}}
+								title="Open in Workbench"
+								className={cx(
+									badgeVariants({variant: "outline", size: "sm"}),
+									"w-fit",
+								)}
+							>
+								Workbench ↗
+							</Link>
+						)}
 						{hasOpenCodeEmbed && detail.opencode_port && (
 							<OpenCodeDirectLink
 								port={detail.opencode_port}

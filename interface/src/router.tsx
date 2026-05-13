@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import {BASE_PATH} from "@/api/client";
 import {ConnectionBanner} from "@/components/ConnectionBanner";
+import {ResizableSidebar} from "@/components/ResizableSidebar";
 import {Sidebar} from "@/components/Sidebar";
 import {Overview} from "@/routes/Overview";
 import {Dashboard} from "@/routes/Dashboard";
@@ -40,7 +41,13 @@ function RootLayout() {
 		<div className="flex h-screen flex-col overflow-hidden bg-sidebar">
 			<ConnectionBanner state={connectionState} hasData={hasData} />
 			<div className="flex min-h-0 flex-1">
-				<Sidebar liveStates={liveStates} />
+				<ResizableSidebar
+					storageKey="spacebot-app-sidebar-width"
+					defaultWidth={220}
+					minWidth={180}
+				>
+					<Sidebar liveStates={liveStates} />
+				</ResizableSidebar>
 				<div className="flex min-w-0 flex-1 flex-col overflow-hidden py-[10px] pr-[10px]">
 					{bare ? (
 						<Outlet />
@@ -106,6 +113,15 @@ const workbenchRoute = createRoute({
 	path: "/workbench",
 	component: function WorkbenchPage() {
 		return <Workbench />;
+	},
+});
+
+const workbenchThreadRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/workbench/$thread",
+	component: function WorkbenchThreadPage() {
+		const {thread} = workbenchThreadRoute.useParams();
+		return <Workbench filterThread={thread} />;
 	},
 });
 
@@ -263,6 +279,7 @@ const routeTree = rootRoute.addChildren([
 	settingsRoute,
 	logsRoute,
 	workbenchRoute,
+	workbenchThreadRoute,
 	tasksRoute,
 	wikiRoute,
 	agentRoute,
