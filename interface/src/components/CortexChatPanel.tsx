@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {useCortexChat, type ToolActivity} from "@/hooks/useCortexChat";
 import {useChatInputPrefs} from "@/hooks/useChatInputPrefs";
+import {useStickToBottom} from "@/hooks/useStickToBottom";
 import {Markdown} from "@/components/Markdown";
 import {ToolCall, type ToolCallPair} from "@/components/ToolCall";
 import {
@@ -397,7 +398,8 @@ export function CortexChatPanel({
 	} = useCortexChat(agentId, channelId, {freshThread: !!initialPrompt});
 	const [input, setInput] = useState("");
 	const [threadListOpen, setThreadListOpen] = useState(false);
-	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const contentRef = useRef<HTMLDivElement>(null);
 	const initialPromptSentRef = useRef(false);
 
 	// Auto-send initial prompt once the fresh thread is ready
@@ -414,9 +416,7 @@ export function CortexChatPanel({
 		}
 	}, [initialPrompt, threadId, isStreaming, messages.length, sendMessage]);
 
-	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
-	}, [messages.length, isStreaming, toolActivity.length]);
+	useStickToBottom(scrollRef, contentRef);
 
 	const handleSubmit = () => {
 		const trimmed = input.trim();
@@ -484,8 +484,8 @@ export function CortexChatPanel({
 			)}
 
 			{/* Messages */}
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<div className="flex flex-col gap-5 p-3 pb-4">
+			<div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+				<div ref={contentRef} className="flex flex-col gap-5 p-3 pb-4">
 					{messages.map((message) => (
 						<div key={message.id}>
 							{message.role === "user" ? (
@@ -528,7 +528,6 @@ export function CortexChatPanel({
 							{error}
 						</div>
 					)}
-					<div ref={messagesEndRef} />
 				</div>
 			</div>
 
